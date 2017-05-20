@@ -1,5 +1,4 @@
 import com.rabbitmq.client.*;
-import com.sun.jndi.toolkit.url.Uri;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -13,7 +12,8 @@ import java.util.concurrent.TimeoutException;
  */
 public class Main {
 
-    public static final String queue = "to_group2";
+    public static final String QUEUE_TO = "to_group2";
+    public static final String QUEUE = "group2";
 
     public static void main(String[] args) throws MalformedURLException, NoSuchAlgorithmException, KeyManagementException, URISyntaxException {
         ConnectionFactory connectionFactory = new ConnectionFactory();
@@ -21,9 +21,9 @@ public class Main {
 
         try(Connection connection = connectionFactory.newConnection()) {
             Channel channel = connection.createChannel();
-            channel.queueDeclare(queue, false, false, true, null);
+            channel.queueDeclare(QUEUE_TO, false, false, true, null);
             System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
-            channel.queueBind(queue, queue, queue);
+            channel.queueBind(QUEUE_TO, QUEUE_TO, QUEUE_TO);
             Consumer consumer = new DefaultConsumer(channel) {
                 @Override
                 public void handleDelivery(String consumerTag, Envelope envelope,
@@ -33,7 +33,8 @@ public class Main {
                     System.out.println(" [x] Received '" + message + "'");
                 }
             };
-            channel.basicConsume(queue, true, consumer);
+            channel.basicPublish(QUEUE, QUEUE, null, "Hello, dude".getBytes());
+            channel.basicConsume(QUEUE_TO, true, consumer);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (TimeoutException e) {
