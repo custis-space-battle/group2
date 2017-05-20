@@ -18,6 +18,8 @@ public class Game{
     private static final Logger log = LoggerFactory.getLogger(Game.class);
     private String result;
 
+    private static String lastMove = "FIRE";
+
     public String getResult() {
         return result;
     }
@@ -40,27 +42,31 @@ public class Game{
         return new String(bytes);
     }
 
-    public String compare (String value) {
-        try {
-            BufferedReader bufferedReader = new BufferedReader((new StringReader(value)));
-            String line = null;
-            Scanner scanner = null;
-            while ((line = bufferedReader.readLine()) != null) {
-                scanner = new Scanner(line);
-                while (scanner.hasNext()) {
-                    String val = scanner.next();
-                    String str1 = "prepare!";
-                    if(new Compare().equalsValue(val, str1)){
-                        result = new Position().get_coordinates_to_string();
-                        System.out.println(result);
-                    }
-                }
+    public String compare (String value, WarField warField) {
 
-
-            }
-            bufferedReader.close();
-        } catch (IOException e) {
-            log.trace("проблемы с объектом");
+        String str1 = "prepare!";
+        Point point = null;
+        if(value.indexOf("fire result: HIT") != -1){
+            lastMove = "HIT";
+        }
+        else if(value.indexOf("fire!") != -1){
+            point = warField.makeAvailbleTurn(lastMove);
+        }
+        else if(value.indexOf("fire result: MISS") != -1){
+            lastMove = "MISS";
+        }
+        else if(value.indexOf("fire result: KILL") != -1){
+            lastMove = "KILL";
+        }
+        else if(value.indexOf("HIT_AGAIN") != -1 || value.indexOf("HIT_MINE") != -1 || value.indexOf("MISS_AGAIN") != -1){
+            lastMove = "OTHER";
+        }
+        if(new Compare().equalsValue(value, str1)){
+            result = new Position().get_coordinates_to_string();
+            System.out.println(result);
+        }
+        if(point != null){
+            result = point.getX() + "," + point.getY();
         }
         return result;
 

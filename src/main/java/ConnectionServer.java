@@ -21,6 +21,7 @@ public class ConnectionServer {
         try {
             final Connection connection = connectionFactory.newConnection();
             Channel channel = connection.createChannel();
+            final WarField warField = new WarField();
             System.out.println(channel);
             channel.queueDeclare(QUEUE_TO, false, false, true, null);
             System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
@@ -35,7 +36,7 @@ public class ConnectionServer {
                     String message = new String(body, "UTF-8");
                     System.out.println(" [x] Received '" + message + "'");
                     Game game = new Game();
-                    message = game.compare(message);
+                    message = game.compare(message, warField);
                     System.out.println();
 
                     Channel channel1 = connection.createChannel();
@@ -44,7 +45,7 @@ public class ConnectionServer {
                     }
                 }
             };
-            channel.basicPublish(QUEUE, QUEUE, null, "start: BOT1".getBytes());
+            channel.basicPublish(QUEUE, QUEUE, null, "start: USUAL".getBytes());
             channel.basicConsume(QUEUE_TO, true, consumer);
 
         } catch (TimeoutException e) {

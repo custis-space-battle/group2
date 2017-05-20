@@ -11,7 +11,9 @@ public class WarField {
 
     public static final String HIT = "HIT";
     public static final String MISS = "MISS";
-    public static final String DESTROY = "DESTROY";
+    public static final String KILL = "KILL";
+
+    private boolean firstTurn = true;
 
     WarField(){
         super();
@@ -27,8 +29,8 @@ public class WarField {
     ArrayList<Point> field = new ArrayList<>();
 
     private void initField(){
-        for (int i = 1; i < 10; i++){
-            for (int j = 1; j < 10; j++){
+        for (int i = 1; i <= 10; i++){
+            for (int j = 1; j <= 10; j++){
                 field.add(new Point(i, j));
             }
         }
@@ -39,8 +41,8 @@ public class WarField {
         boolean available = false;
         Point firePoint = new Point();
         while (!available){
-            int x = random.nextInt(FIELD_X );
-            int y = random.nextInt(FIELD_Y);
+            int x = random.nextInt(FIELD_X) + 1;
+            int y = random.nextInt(FIELD_Y) + 1;
             firePoint.setX(x);
             firePoint.setY(y);
             available = checkPoint(firePoint);
@@ -52,29 +54,37 @@ public class WarField {
         Point firePoint = null;
         switch (lastTurnResult){
             case HIT:
-                hitMove();
+                firePoint = hitMove();
+                clearField(firePoint);
                 break;
 
             case MISS:
-                missMove();
+                firePoint = missMove();
+                clearField(firePoint);
                 break;
 
-            case DESTROY:
+            case KILL:
 
                 break;
 
             default:
                 firePoint = randomFire();
         }
-        clearField(lastMove);
+        if(firePoint == null){
+            firePoint = randomFire();
+        }
+        lastMove = firePoint;
         return firePoint;
     }
 
     private void clearField(Point hitted){
-        int index = field.indexOf(hitted);
-        if(index != -1){
-            field.remove(hitted);
+        ArrayList<Point> list = (ArrayList<Point>) field.clone();
+        for(Point point: field){
+            if(point.getY() == hitted.getY() && point.getX() == hitted.getX()){
+                list.remove(point);
+            }
         }
+        field = list;
     }
 
     private Point hitMove(){
@@ -113,8 +123,10 @@ public class WarField {
     }
 
     public boolean checkPoint(Point point){
-        if(field.indexOf(point) != -1){
-            return true;
+        for (Point fieldPoint: field){
+            if(fieldPoint.getY() == point.getY() && fieldPoint.getX() == point.getX()){
+                return true;
+            }
         }
         return false;
     }
@@ -153,14 +165,16 @@ public class WarField {
 
     private void fillAvailableMoves(){
         addToMoveList(lastMove.getX() - 1, lastMove.getY());
-        addToMoveList(lastMove.getX() - 1, lastMove.getY());
+        addToMoveList(lastMove.getX() + 1, lastMove.getY());
         addToMoveList(lastMove.getX(), lastMove.getY() - 1);
-        addToMoveList(lastMove.getX(), lastMove.getY() - 1);
+        addToMoveList(lastMove.getX(), lastMove.getY() + 1);
     }
 
     private void addToMoveList(int x, int y){
-        if(!(x < 1 || x > FIELD_X || y < 1 || y < FIELD_Y)){
-            availableMoves.add(new Point(x, y));
+        if(!(x < 1 || x > FIELD_X || y < 1 || y > FIELD_Y)){
+            if(checkPoint(new Point(x, y))){
+                availableMoves.add(new Point(x, y));
+            }
         }
     }
 
